@@ -9,7 +9,14 @@ from linebot.exceptions import (
     InvalidSignatureError
 )
 from linebot.models import (
-    MessageEvent, TextMessage, TextSendMessage,
+    MessageEvent,
+    TextMessage,
+    TextSendMessage,
+    ButtonsTemplate,
+    TemplateSendMessage,
+    PostbackTemplateAction,
+    MessageTemplateAction,
+    URITemplateAction
 )
 
 app = Flask(__name__)
@@ -39,9 +46,32 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
+    if (event.message.text == '/select'):
+        reply_message = TemplateSendMessage(
+            alt_text='Message not supported',
+            template=ButtonsTemplate(
+                title='Menu',
+                text='Please select action',
+                actions=[
+                    MessageTemplateAction(
+                        label='Say hi!',
+                        text='/hi'
+                    ),
+                    URITemplateAction(
+                        label='Go to website',
+                        uri='http://example.com/'
+                    )
+                ]
+            )
+        )
+    elif (event.message.text == '/hi'):
+        reply_message = TextSendMessage(text='hi!')
+    else:
+        reply_message = TextSendMessage(text='Type /select for view main menu')
+
     line_bot_api.reply_message(
         event.reply_token,
-        TextSendMessage(text=event.message.text)
+        reply_message
     )
 
 
