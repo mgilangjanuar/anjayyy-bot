@@ -39,10 +39,19 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=event.message.text)
-    )
+    if (event.message.text == '/who am i'):
+        profile = line_bot_api.get_profile(event.source.user_id)
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(
+                text='Name: {}\nUser ID: {}\nPicture URL: {}\nStatus: {}'.format(
+                    profile.display_name,
+                    profile.user_id,
+                    profile.picture_url,
+                    profile.status_message
+                )
+            )
+        )
 
 
 if __name__ == "__main__":
