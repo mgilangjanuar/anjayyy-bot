@@ -1,5 +1,6 @@
 from flask import Flask, request, abort
 from dotenv import load_dotenv, find_dotenv
+from wit import Wit
 import os
 
 from linebot import (
@@ -17,6 +18,7 @@ load_dotenv(find_dotenv())
 
 line_bot_api = LineBotApi(os.environ.get('CHANNEL_ACCESS_TOKEN'))
 handler = WebhookHandler(os.environ.get('CHANNEL_SECRET'))
+client = Wit(os.environ.get('WIT_ACCESS_TOKEN'))
 
 
 @app.route('/callback', methods=['POST'])
@@ -39,10 +41,19 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=event.message.text)
-    )
+    resp = client.message(event.message.text)
+    if (resp.get('entities').get('greeting', None) != None):
+        resp = resp.get('entities').get('greeting')[0]
+        if resp.get('value') == 'hai':
+            line_bot_api.reply_message(
+                event.reply_token,
+                TextSendMessage(text='Hai! Semoga harimu menyenangkan')
+            )
+        elif resp.get('value') == 'halo':
+            line_bot_api.reply_message(
+                event.reply_token,
+                TextSendMessage(text='Halo juga! Semangat buat hari ini :)')
+            )
 
 
 if __name__ == "__main__":
